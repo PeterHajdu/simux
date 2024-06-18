@@ -29,6 +29,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <readline/readline.h>
+#include <readline/history.h>
 #include <pthread.h>
 #include <sys/select.h>
 #include <sys/socket.h>
@@ -51,12 +52,18 @@ int main(int argc, char **argv) {
 
   const int server_socket = connect_to_server(argc, argv);
   const int command_socket = start_communication_thread(server_socket);
+  const char* history_file = "simux.history";
+
+  using_history();
+  read_history(history_file);
 
   for (;;) {
     char* command = readline("simux> ");
     if (NULL == command) {
       return 0;
     }
+    add_history(command);
+    write_history(history_file);
     if (-1 == write(command_socket, &command, sizeof(char*))) {
       err(1, "Unable to send command to comm thread.");
     }
