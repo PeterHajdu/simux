@@ -33,6 +33,8 @@
 #include <pthread.h>
 #include <sys/select.h>
 #include <sys/socket.h>
+#include <sys/errno.h>
+#include <errno.h>
 #include <arpa/inet.h>
 #include <netdb.h>
 
@@ -152,6 +154,9 @@ void *communication_thread_function(void *arg) {
     FD_SET(server_fd, &read_fds);
     int select_return = select(max_fd + 1, &read_fds, NULL, NULL, NULL);
     if (-1 == select_return) {
+      if (EINTR == errno) {
+        continue;
+      }
       err(1,"select failed");
     }
 
